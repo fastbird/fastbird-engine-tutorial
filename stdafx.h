@@ -18,5 +18,7 @@
 
 // TODO: reference additional headers your program requires here
 #define FB_DLL_ENGINEFACADE __declspec(dllimport)
+#define FB_DLL_TIMER __declspec(dllimport)
+#define FB_DLL_RENDERER __declspec(dllimport)
 
 #include "FBMathLib/Math.h"

@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "mygame.h"
 #include "FBEngineFacade/EngineFacade.h"
+#include "FBEngineFacade/MeshFacade.h"
+#include "FBTimer/Timer.h"
+#include "FBRenderer/Camera.h"
 
 #define MAX_LOADSTRING 100
 
@@ -22,16 +25,89 @@ using namespace fb;
 
 EngineFacadePtr gEngine;
 HWindowId gWindowId;
+MeshFacadePtr gCube;
+
+void SetupCube() {
+	gCube = MeshFacade::Create();
+	gCube->CreateEmptyMeshObject();
+	gCube->StartModification();
+	std::vector<Vec3> positions = {
+		// x face
+		Vec3(1, -1, -1),
+		Vec3(1, -1, 1),
+		Vec3(1, 1, -1),
+		Vec3(1, 1, -1),
+		Vec3(1, -1, 1),
+		Vec3(1, 1, 1),
+
+		// -x face
+		Vec3(-1, 1, -1),
+		Vec3(-1, 1, 1),
+		Vec3(-1, -1, -1),
+		Vec3(-1, -1, -1),
+		Vec3(-1, 1, 1),
+		Vec3(-1, -1, 1),
+
+		// y face
+		Vec3(1, 1, -1),
+		Vec3(1, 1, 1),
+		Vec3(-1, 1, -1),
+
+		Vec3(-1, 1, -1),
+		Vec3(1, 1, 1),
+		Vec3(-1, 1, 1),
+
+		// -y face
+		Vec3(-1, -1, -1),
+		Vec3(-1, -1, 1),
+		Vec3(1, -1, -1),
+		Vec3(1, -1, -1),
+		Vec3(-1, -1, 1),
+		Vec3(1, -1, 1),
+
+		// z face
+		Vec3(-1, -1, 1),
+		Vec3(-1, 1, 1),
+		Vec3(1, -1, 1),
+		Vec3(1, -1, 1),
+		Vec3(-1, 1, 1),
+		Vec3(1, 1, 1),
+
+		// -z face
+		Vec3(-1, 1, -1),
+		Vec3(-1, -1, -1),
+		Vec3(1, 1, -1),
+		Vec3(1, 1, -1),
+		Vec3(-1, -1, -1),
+		Vec3(1, -1, -1)
+	};
+	gCube->SetPositions(0, &positions[0], positions.size());
+	gCube->EndModification(false);
+	gCube->AttachToCurrentScene();
+}
+
 void InitializeEngine() {
 	gEngine = EngineFacade::Create();
 	gWindowId = gEngine->CreateEngineWindow(0, 0, 1280, 800, "mygame", "mygame powered by FBEngine", 0, 
 		WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_SIZEBOX, 0, WndProc);
 	gEngine->InitRenderer("FBRendererD3D11");
 	gEngine->InitCanvas(gWindowId, 0, 0);
+
+	SetupCube();
+
+	gEngine->GetMainCamera()->SetEnalbeInput(true);
 }
 
-void UpdateFrame() {
+void UpdateFrame() {	
+	gpTimer->Tick();
+	auto dt = gpTimer->GetDeltaTime();	
+	gEngine->UpdateInput();
 
+	gEngine->Update(dt);
+
+	gEngine->EndInput();
+
+	gEngine->Render();
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -132,38 +208,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
-        }
-        break;
     case WM_DESTROY:
         PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        break;    
     }
-    return 0;
+		return gEngine->WinProc((HWindow)hWnd, message, wParam, lParam);
 }
 
 // Message handler for about box.
