@@ -22,3 +22,4 @@
 #define FB_DLL_RENDERER __declspec(dllimport)
 
 #include "FBMathLib/Math.h"
+#include "FBDebugLib/Logger.h"

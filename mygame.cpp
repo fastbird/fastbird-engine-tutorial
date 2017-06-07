@@ -8,6 +8,9 @@
 #include "FBTimer/Timer.h"
 #include "FBRenderer/Camera.h"
 
+#include "InputHandler.h"
+#include "CameraMan.h"
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -88,20 +91,23 @@ void SetupCube() {
 
 void InitializeEngine() {
 	gEngine = EngineFacade::Create();
-	gWindowId = gEngine->CreateEngineWindow(0, 0, 1280, 800, "mygame", "mygame powered by FBEngine", 0, 
+	gWindowId = gEngine->CreateEngineWindow(-1, -1, 1280, 800, "mygame", "mygame powered by FBEngine", 0, 
 		WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_SIZEBOX, 0, WndProc);
 	gEngine->InitRenderer("FBRendererD3D11");
 	gEngine->InitCanvas(gWindowId, 0, 0);
 
 	SetupCube();
-
-	gEngine->GetMainCamera()->SetEnalbeInput(true);
+	gInputHandler = std::make_shared<InputHandler>();
+	gEngine->RegisterInputConsumer(gInputHandler, IInputConsumer::Priority::Priority55_INTERACTION);
+	gCameraMan = std::make_shared<CameraMan>(gEngine->GetMainCamera());
 }
 
 void UpdateFrame() {	
 	gpTimer->Tick();
 	auto dt = gpTimer->GetDeltaTime();	
 	gEngine->UpdateInput();
+	
+	gCameraMan->Update(dt);
 
 	gEngine->Update(dt);
 
