@@ -96,24 +96,35 @@ void InitializeEngine() {
 	gEngine->InitRenderer("FBRendererD3D11");
 	gEngine->InitCanvas(gWindowId, 0, 0);
 
-	SetupCube();
 	gInputHandler = std::make_shared<InputHandler>();
 	gEngine->RegisterInputConsumer(gInputHandler, IInputConsumer::Priority::Priority55_INTERACTION);
-	gCameraMan = std::make_shared<CameraMan>(gEngine->GetMainCamera());
+	//gCameraMan = std::make_shared<CameraMan>(gEngine->GetMainCamera());
+	gEngine->GetMainCamera()->SetEnalbeInput(true);
 }
 
 void UpdateFrame() {	
 	gpTimer->Tick();
 	auto dt = gpTimer->GetDeltaTime();	
+	gEngine->UpdateFileMonitor();
 	gEngine->UpdateInput();
-	
-	gCameraMan->Update(dt);
+
+	if (gCameraMan)
+		gCameraMan->Update(dt);
 
 	gEngine->Update(dt);
 
 	gEngine->EndInput();
 
 	gEngine->Render();
+}
+std::vector<fb::MeshFacadePtr> gObjects;
+void LoadObjects() {
+	auto mesh = MeshFacade::Create();
+	mesh = mesh->LoadMeshObject("data/objects/turtleship.dae");
+	if (mesh) {
+		gObjects.push_back(mesh);
+		mesh->AttachToCurrentScene();
+	}
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -125,6 +136,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
 		InitializeEngine();
+		LoadObjects();
 
 		MSG msg = {};
 		while (msg.message != WM_QUIT)

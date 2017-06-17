@@ -7,7 +7,7 @@ using namespace fb;
 CameraManPtr gCameraMan;
 static float MouseSensitivity = 0.005f;
 
-CameraMan::CameraMan(fb::CameraPtr engineCam) 
+CameraMan::CameraMan(fb::CameraPtr engineCam)
 	: mEngineCam(engineCam)
 {
 
